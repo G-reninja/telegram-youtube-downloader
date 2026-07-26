@@ -48,31 +48,41 @@ class YouTubeDownloader:
 
         return None
 
-    def get_info(self, url: str) -> dict:
-        """Extract metadata for a given YouTube URL without downloading."""
-        ydl_opts = {
+    def _build_ydl_opts(self, extra_opts=None) -> dict:
+        """Build ydl_opts with cookie support, PROXY_URL support, and mobile client fallback."""
+        opts = {
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            'skip_download': True,
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['web', 'mweb', 'android'],
+                    'player_client': ['web', 'mweb', 'android', 'ios'],
                     'po_token': ['web+auto', 'android+auto'],
                 }
             },
-
         }
 
         cookie_path = self._get_cookie_file()
         if cookie_path:
-            ydl_opts['cookiefile'] = cookie_path
+            opts['cookiefile'] = cookie_path
 
+        proxy = os.getenv('PROXY_URL')
+        if proxy:
+            opts['proxy'] = proxy
 
+        if extra_opts:
+            opts.update(extra_opts)
+
+        return opts
+
+    def get_info(self, url: str) -> dict:
+        """Extract metadata for a given YouTube URL without downloading."""
+        ydl_opts = self._build_ydl_opts({'skip_download': True})
 
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+
             
             # Handle playlist entries if a playlist URL was provided
             if 'entries' in info and len(info['entries']) > 0:
@@ -167,30 +177,16 @@ class YouTubeDownloader:
         else:
             format_str = 'bestvideo+bestaudio/best'
 
-        ydl_opts = {
+        ydl_opts = self._build_ydl_opts({
             'format': format_str,
             'outtmpl': out_template,
-            'quiet': True,
-            'no_warnings': True,
-            'nocheckcertificate': True,
             'restrictfilenames': True,
             'merge_output_format': 'mp4',
             'socket_timeout': 30,
             'retries': 10,
             'fragment_retries': 10,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['web', 'mweb', 'android'],
-                    'po_token': ['web+auto', 'android+auto'],
-                }
-            },
+        })
 
-        }
-
-        cookie_path = self._get_cookie_file()
-        if cookie_path:
-            ydl_opts['cookiefile'] = cookie_path
 
 
 
@@ -237,25 +233,15 @@ class YouTubeDownloader:
             from config import FFMPEG_PATH, BASE_DIR
 
         out_template = os.path.join(self.download_dir, '%(id)s_%(title).50s.%(ext)s')
-        ydl_opts = {
+        ydl_opts = self._build_ydl_opts({
             'format': 'bestaudio[ext=m4a]/bestaudio/best',
             'outtmpl': out_template,
-            'quiet': True,
-            'no_warnings': True,
-            'nocheckcertificate': True,
             'restrictfilenames': True,
             'socket_timeout': 30,
             'retries': 10,
             'fragment_retries': 10,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['web', 'mweb', 'android'],
-                    'po_token': ['web+auto', 'android+auto'],
-                }
-            },
+        })
 
-        }
 
 
         cookie_path = self._get_cookie_file()
