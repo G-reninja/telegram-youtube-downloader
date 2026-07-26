@@ -20,12 +20,27 @@ class YouTubeDownloader:
 
     def get_info(self, url: str) -> dict:
         """Extract metadata for a given YouTube URL without downloading."""
+        try:
+            from .config import BASE_DIR
+        except ImportError:
+            from config import BASE_DIR
+
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
             'skip_download': True,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web'],
+                }
+            },
         }
+
+        cookie_path = os.path.join(BASE_DIR, 'cookies.txt')
+        if os.path.exists(cookie_path):
+            ydl_opts['cookiefile'] = cookie_path
+
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             
@@ -38,6 +53,14 @@ class YouTubeDownloader:
             thumbnail = info.get('thumbnail', '')
             uploader = info.get('uploader', 'Unknown Channel')
             filesize = info.get('filesize') or info.get('filesize_approx') or 0
+
+            # Extract available unique video heights
+            raw_heights = set()
+            for f in info.get('formats', []):
+                h = f.get('height')
+                vcodec = f.get('vcodec', 'none')
+                if h and vcodec != 'none' and h >= 144:
+                    raw_heights.add(h)
 
             # Find best audio stream size
             audio_size = 0
@@ -125,8 +148,16 @@ class YouTubeDownloader:
             'socket_timeout': 30,
             'retries': 10,
             'fragment_retries': 10,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web'],
+                }
+            },
         }
 
+        cookie_path = os.path.join(BASE_DIR, 'cookies.txt')
+        if os.path.exists(cookie_path):
+            ydl_opts['cookiefile'] = cookie_path
 
         # Check for custom ffmpeg location
         ffmpeg_loc = FFMPEG_PATH
@@ -181,8 +212,16 @@ class YouTubeDownloader:
             'socket_timeout': 30,
             'retries': 10,
             'fragment_retries': 10,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web'],
+                }
+            },
         }
 
+        cookie_path = os.path.join(BASE_DIR, 'cookies.txt')
+        if os.path.exists(cookie_path):
+            ydl_opts['cookiefile'] = cookie_path
 
         ffmpeg_loc = FFMPEG_PATH
         if not ffmpeg_loc:
