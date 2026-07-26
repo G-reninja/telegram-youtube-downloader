@@ -1,9 +1,10 @@
 # Use official Python 3.11 lightweight image
 FROM python:3.11-slim
 
-# Install system dependencies including ffmpeg
+# Install system dependencies including ffmpeg and nodejs (for yt-dlp JS n-challenge solver)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
