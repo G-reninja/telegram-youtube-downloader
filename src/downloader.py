@@ -18,13 +18,38 @@ class YouTubeDownloader:
         os.makedirs(self.download_dir, exist_ok=True)
 
 
-    def get_info(self, url: str) -> dict:
-        """Extract metadata for a given YouTube URL without downloading."""
+    def _get_cookie_file(self) -> str:
+        """Find valid cookies.txt path from Render secrets, env var, or project root."""
         try:
             from .config import BASE_DIR
         except ImportError:
             from config import BASE_DIR
 
+        # 1. Render Secret File path
+        render_secret_cookies = '/etc/secrets/cookies.txt'
+        if os.path.exists(render_secret_cookies):
+            return render_secret_cookies
+
+        # 2. Local / GitHub repository cookies.txt
+        local_cookies = os.path.join(BASE_DIR, 'cookies.txt')
+        if os.path.exists(local_cookies):
+            return local_cookies
+
+        # 3. YOUTUBE_COOKIES Environment Variable
+        cookie_env = os.getenv('YOUTUBE_COOKIES')
+        if cookie_env:
+            temp_cookie = os.path.join(self.download_dir, 'env_cookies.txt')
+            try:
+                with open(temp_cookie, 'w', encoding='utf-8') as f:
+                    f.write(cookie_env)
+                return temp_cookie
+            except Exception:
+                pass
+
+        return None
+
+    def get_info(self, url: str) -> dict:
+        """Extract metadata for a given YouTube URL without downloading."""
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -33,15 +58,18 @@ class YouTubeDownloader:
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['mweb', 'android', 'web'],
+                    'player_client': ['web', 'mweb', 'android'],
+                    'po_token': ['web+auto', 'android+auto'],
                 }
             },
+
         }
 
-
-        cookie_path = os.path.join(BASE_DIR, 'cookies.txt')
-        if os.path.exists(cookie_path):
+        cookie_path = self._get_cookie_file()
+        if cookie_path:
             ydl_opts['cookiefile'] = cookie_path
+
+
 
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -153,14 +181,18 @@ class YouTubeDownloader:
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['mweb', 'android', 'web'],
+                    'player_client': ['web', 'mweb', 'android'],
+                    'po_token': ['web+auto', 'android+auto'],
                 }
             },
+
         }
 
-        cookie_path = os.path.join(BASE_DIR, 'cookies.txt')
-        if os.path.exists(cookie_path):
+        cookie_path = self._get_cookie_file()
+        if cookie_path:
             ydl_opts['cookiefile'] = cookie_path
+
+
 
         # Check for custom ffmpeg location
         ffmpeg_loc = FFMPEG_PATH
@@ -218,15 +250,19 @@ class YouTubeDownloader:
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['mweb', 'android', 'web'],
+                    'player_client': ['web', 'mweb', 'android'],
+                    'po_token': ['web+auto', 'android+auto'],
                 }
             },
+
         }
 
 
-        cookie_path = os.path.join(BASE_DIR, 'cookies.txt')
-        if os.path.exists(cookie_path):
+        cookie_path = self._get_cookie_file()
+        if cookie_path:
             ydl_opts['cookiefile'] = cookie_path
+
+
 
         ffmpeg_loc = FFMPEG_PATH
         if not ffmpeg_loc:
