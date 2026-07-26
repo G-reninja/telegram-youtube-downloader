@@ -1,0 +1,9 @@
+services:
+  - type: worker
+    name: telegram-youtube-downloader
+    env: docker
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
