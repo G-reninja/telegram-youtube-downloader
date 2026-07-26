@@ -2,6 +2,8 @@ import asyncio
 import logging
 import os
 import sys
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 # Ensure src directory is in python path
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +40,30 @@ logger = logging.getLogger(__name__)
 
 # Initialize YouTube Downloader
 downloader = YouTubeDownloader()
+
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    """Simple HTTP server handler for Render health checks."""
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b"OK - Bot is running")
+
+    def log_message(self, format, *args):
+        pass  # Silence HTTP server access logs
+
+
+def start_health_check_server():
+    """Start HTTP server on PORT for Render health check."""
+    try:
+        port = int(os.getenv("PORT", 8080))
+        server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+        logger.info(f"Health check HTTP server started on port {port}")
+        server.serve_forever()
+    except Exception as e:
+        logger.error(f"Health check server error: {e}")
+
 
 
 
@@ -279,11 +305,14 @@ def main() -> None:
         return
 
     print("🚀 Starting Telegram YouTube Downloader Bot...")
+    threading.Thread(target=start_health_check_server, daemon=True).start()
+
     request = HTTPXRequest(
         connect_timeout=60.0,
         read_timeout=300.0,
         write_timeout=300.0
     )
+
     app = ApplicationBuilder().token(config.BOT_TOKEN).request(request).build()
 
     app.add_handler(CommandHandler("start", start))
