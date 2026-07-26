@@ -1,7 +1,8 @@
 import os
 
-# Telegram Bot Token (can be set via environment variable BOT_TOKEN or fallback to default)
-BOT_TOKEN = os.getenv('BOT_TOKEN', '8091120611:AAG7VXWNYlhmj4d7iVsjLHfE52iu96S2Gio')
+# Telegram Bot Token (loaded securely from environment variable BOT_TOKEN)
+BOT_TOKEN = os.getenv('BOT_TOKEN', '')
+
 
 # Base directory for storing temporary downloads
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
