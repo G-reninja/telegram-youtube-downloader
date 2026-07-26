@@ -30,12 +30,14 @@ class YouTubeDownloader:
             'no_warnings': True,
             'nocheckcertificate': True,
             'skip_download': True,
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web'],
+                    'player_client': ['mweb', 'android', 'web'],
                 }
             },
         }
+
 
         cookie_path = os.path.join(BASE_DIR, 'cookies.txt')
         if os.path.exists(cookie_path):
@@ -148,9 +150,10 @@ class YouTubeDownloader:
             'socket_timeout': 30,
             'retries': 10,
             'fragment_retries': 10,
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web'],
+                    'player_client': ['mweb', 'android', 'web'],
                 }
             },
         }
@@ -212,12 +215,14 @@ class YouTubeDownloader:
             'socket_timeout': 30,
             'retries': 10,
             'fragment_retries': 10,
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web'],
+                    'player_client': ['mweb', 'android', 'web'],
                 }
             },
         }
+
 
         cookie_path = os.path.join(BASE_DIR, 'cookies.txt')
         if os.path.exists(cookie_path):
